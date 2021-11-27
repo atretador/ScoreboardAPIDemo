@@ -7,6 +7,7 @@ using System.Threading;
 using Assets.Source;
 using System.IO;
 using System;
+using System.Text;
 
 public class ScoreboardAPI : MonoBehaviour
 {
@@ -36,7 +37,6 @@ public class ScoreboardAPI : MonoBehaviour
 
     public IEnumerator GetScores(){
         url = ((ServerUrl.text == "" ) ? "https://localhost:7264" : ServerUrl.text) + api;
-        Debug.Log(url);
         using (UnityWebRequest uwr = UnityWebRequest.Get(url)) {
             var cert = new ForceAcceptAll();
             uwr.certificateHandler = cert;
@@ -46,7 +46,7 @@ public class ScoreboardAPI : MonoBehaviour
                     Debug.Log("Error While Sending: " + uwr.error);
                     break;
                 default:
-                    Score[] scoreArr = JsonUtility.FromJson<Score[]>(uwr.downloadHandler.text);
+                    Score[] scoreArr = JsonHelper.FromJson<Score>(JsonHelper.fixJson(uwr.downloadHandler.text));
                     StartCoroutine(JsonToScore(scoreArr));
                     break;
             }
@@ -70,12 +70,19 @@ public class ScoreboardAPI : MonoBehaviour
 
     public IEnumerator PostScore(){
         url = ((ServerUrl.text == "" ) ? "https://localhost:7264" : ServerUrl.text) + api;
-        Debug.Log(url);
+        
         Score score = new Score();
         score.name = Username.text;
         score.score = int.Parse(Userscore.text);
-        Debug.Log(JsonUtility.ToJson(score));
-        using (UnityWebRequest uwr = UnityWebRequest.Post(url, JsonUtility.ToJson(score))){
+        string json = JsonUtility.ToJson(score);
+
+        using (UnityWebRequest uwr = UnityWebRequest.Post(url, json)){
+            //for some reason, the .Post(url, json <- ) doesnt work. So we need to use the
+            // uploadhandler to actually send the json
+            var bodyRaw = Encoding.UTF8.GetBytes(json);
+            uwr.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            uwr.SetRequestHeader("Content-Type", "application/json");
+
             var cert = new ForceAcceptAll();
             uwr.certificateHandler = cert;
             //Send the request then wait here until it returns
@@ -86,7 +93,7 @@ public class ScoreboardAPI : MonoBehaviour
                     Debug.Log("Error While Sending: " + uwr.error);
                     break;
                 default:
-                    Debug.Log("New score sent");
+                    Debug.Log("sent, return:" + uwr.downloadHandler.text);
                     break;
             }
             cert?.Dispose();
