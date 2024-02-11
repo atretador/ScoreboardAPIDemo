@@ -8,7 +8,7 @@ namespace Assets.Source
     [Serializable]
     public class Score
     {
-        public string name;
-        public int    score;
+        public string Name;
+        public int    Score;
     }
 }
