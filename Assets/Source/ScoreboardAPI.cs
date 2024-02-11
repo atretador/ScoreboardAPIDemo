@@ -60,7 +60,7 @@ public class ScoreboardAPI : MonoBehaviour
         for (int i = 0; i < scores.Length; i++)
         {
             yield return new WaitForSeconds(0.2f);
-            Scoreboard.text += (i+1) + ". " + scores[i].name + " : " + scores[i].score + "\n";
+            Scoreboard.text += (i+1) + ". " + scores[i].Name + " : " + scores[i].Score + "\n";
         }
     }
 
@@ -72,8 +72,8 @@ public class ScoreboardAPI : MonoBehaviour
         url = ((ServerUrl.text == "" ) ? "https://localhost:7264" : ServerUrl.text) + api;
         
         Score score = new Score();
-        score.name = Username.text;
-        score.score = int.Parse(Userscore.text);
+        score.Name = Username.text;
+        score.Score = int.Parse(Userscore.text);
         string json = JsonUtility.ToJson(score);
 
         using (UnityWebRequest uwr = UnityWebRequest.Post(url, json)){
